@@ -28,6 +28,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.uimanager.ViewManager;
 
 public class ContactsWrapper extends ReactContextBaseJavaModule implements ActivityEventListener {
@@ -155,9 +156,11 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
                             /* Map Any contact data we want returned to the JS object key for React Native */
                             HashMap<String, String> returnKeys = new HashMap<String, String>();
                             returnKeys.put(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, "name");
-                            returnKeys.put(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE, "phone");
+                            //returnKeys.put(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE, "phone");
                             returnKeys.put(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE, "email");
-
+                            
+                            WritableArray phonesArray = Arguments.createArray();
+                            
                             int dataIdx = cursor.getColumnIndex(ContactsContract.Contacts.Entity.DATA1);
                             int mimeIdx = cursor.getColumnIndex(ContactsContract.Contacts.Entity.MIMETYPE);
                             if (cursor.moveToFirst()) {
@@ -167,9 +170,12 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
                                         contactData.putString((String) returnKeys.get(mime), cursor.getString(dataIdx));
                                         foundData = true;
                                     }
+                                    if(mime.contains("phone")){
+                                        phonesArray.pushString(cursor.getString(dataIdx));
+                                    }
                                 } while (cursor.moveToNext());
                             }
-
+                            contactData.putArray("phones",phonesArray);
                             cursor.close();
                             if(foundData) {
                                 mContactsPromise.resolve(contactData);
